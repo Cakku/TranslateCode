@@ -18,6 +18,8 @@ namespace TranslateCode
 		static JsonSerializerOptions options = new JsonSerializerOptions{PropertyNamingPolicy = JsonNamingPolicy.CamelCase};
 		static string responseRegex = "\"text\":\"(.*)\"";
 
+		static string log = "";
+
 		public static void Main(string[] args)
 		{
 			string texti = "buff = lang(\"この…鈴の音は…ランカータ…？なぜ…ここ…に。いや、違う…！\", \"Sorry, this is untranslated sentence.\") \nbuff = lang(\"は…ランカータ…？なぜ\", \"Sorry, this is untranslated sentence.\")";
@@ -28,7 +30,6 @@ namespace TranslateCode
 
 			if (File.Exists(path + "start1.hsp"))
 			{
-				// Create a file to write to.
 				texti = File.ReadAllText(path + "start1.hsp");
 				//File.WriteAllText(path, createText, Encoding.UTF8);
 			}
@@ -39,8 +40,8 @@ namespace TranslateCode
 			string toTranslate = Regex.Replace(texti, regex, new MatchEvaluator(TranslateRegex));
 
 			File.WriteAllText(path + "translated.hsp", toTranslate, Encoding.UTF8);
+			File.WriteAllText(path + "log.txt", log, Encoding.UTF8);
 			Console.WriteLine("*Translated:*");
-			//Console.WriteLine(toTranslate);
 			Console.WriteLine("*End Translation*");
 		}
 
@@ -49,7 +50,9 @@ namespace TranslateCode
 			string text1 = m.Groups[1].ToString();
 			string text2 = m.Groups[2].ToString();
 			//return string.Format("\"{0}\", \"{1}\"", text1, "This is not untranslated text!");
-			return string.Format("\"{0}\", \"{1}\"", text1, Translate(text1).Result);
+			string value = string.Format("\"{0}\", \"{1}\"", text1, Translate(text1).Result);
+			log += "\n" + value;
+			return value;
 		}
 
 		public static async Task<string> Translate(string text)
@@ -58,8 +61,7 @@ namespace TranslateCode
 
 			try
 			{
-				TranslateResponse translation;
-
+				//TranslateResponse translation;
 				string responseBody = await client.GetStringAsync(uri);
 				Console.WriteLine($"translation response: " + responseBody);
 				//Dunno why I can't get json parsing to work, eff it.
@@ -75,7 +77,7 @@ namespace TranslateCode
 			{
 				Console.WriteLine("\nException Caught!");
 				Console.WriteLine("Message :{0} ", e.Message);
-				string translated = "\"TODO get google translate\"";
+				string translated = "TODO get google translate";
 				return translated;
 			}
 
