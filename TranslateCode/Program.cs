@@ -14,44 +14,42 @@ namespace TranslateCode
 	class Program
 	{
 		static readonly HttpClient client = new HttpClient();
-		static string auth = "8df239f8-2b6a-3b81-fef0-15baca8d68fb";
+		static string auth = "2ce61ad5-4778-24e8-7c56-5bb2e11b73a7";
 		static JsonSerializerOptions options = new JsonSerializerOptions{PropertyNamingPolicy = JsonNamingPolicy.CamelCase};
 		static string responseRegex = "\"text\":\"(.*)\"";
 
+		static string script = "";
 		static string log = "";
 
 		public static void Main(string[] args)
 		{
-			string texti = "buff = lang(\"この…鈴の音は…ランカータ…？なぜ…ここ…に。いや、違う…！\", \"Sorry, this is untranslated sentence.\") \nbuff = lang(\"は…ランカータ…？なぜ\", \"Sorry, this is untranslated sentence.\")";
-
-			string regex = "\"(.*)\",.\"(Sorry, this is untranslated sentence.)\"";
+			string regex = "lang\\((.*),.\"(Sorry, this is untranslated sentence.)\"";
 			string path = "C:/Users/Cakku/Documents/Elona/elonaplus2.01/elonaplus/";
 
+			string texti = "buff = lang(\"この…鈴の音は…ランカータ…？なぜ…ここ…に。いや、違う…！\", \"Sorry, this is untranslated sentence.\") \nbuff = lang(\"は…ランカータ…？なぜ\", \"Sorry, this is untranslated sentence.\")";
 
 			if (File.Exists(path + "start1.hsp"))
 			{
 				texti = File.ReadAllText(path + "start1.hsp");
-				//File.WriteAllText(path, createText, Encoding.UTF8);
 			}
-
-			//Console.WriteLine(texti);
 
 			Console.WriteLine("Start translating..");
 			string toTranslate = Regex.Replace(texti, regex, new MatchEvaluator(TranslateRegex));
 
 			File.WriteAllText(path + "translated.hsp", toTranslate, Encoding.UTF8);
+			File.WriteAllText(path + "script.txt", script, Encoding.UTF8);
 			File.WriteAllText(path + "log.txt", log, Encoding.UTF8);
-			Console.WriteLine("*Translated:*");
-			Console.WriteLine("*End Translation*");
+			Console.WriteLine("*Translated:* \n");
+			Console.WriteLine(log);
 		}
 
 		public static string TranslateRegex(Match m)
 		{
 			string text1 = m.Groups[1].ToString();
-			string text2 = m.Groups[2].ToString();
 			//return string.Format("\"{0}\", \"{1}\"", text1, "This is not untranslated text!");
-			string value = string.Format("\"{0}\", \"{1}\"", text1, Translate(text1).Result);
-			log += "\n" + value;
+			string value = Regex.Unescape(string.Format("lang({0}, {1}", text1, Translate(text1).Result));
+			script += "\n" + value;
+			Console.WriteLine("translated text: " + value);
 			return value;
 		}
 
@@ -63,13 +61,19 @@ namespace TranslateCode
 			{
 				//TranslateResponse translation;
 				string responseBody = await client.GetStringAsync(uri);
-				Console.WriteLine($"translation response: " + responseBody);
+				//Console.WriteLine($"translation response: " + responseBody);
 				//Dunno why I can't get json parsing to work, eff it.
 				//translation = JsonSerializer.Deserialize<TranslateResponse>(responseBody, options);
 				//Console.WriteLine($"*text*: {translation.translations != null}" + translation?.translations?.FirstOrDefault()?.text);
 				//regex for resque
 				string translatedStr = Regex.Match(responseBody, responseRegex).Groups[1].Value;
-				Console.WriteLine("translated text: "+ translatedStr);
+				if (translatedStr.Last() != '"')
+				{
+					translatedStr += "\"";
+					Console.WriteLine("added missing quotes");
+					log += "added missing quotes: " + translatedStr + "\n";
+				}
+				//Console.WriteLine("translated text: "+ translatedStr);
 				return translatedStr;
 
 			}
