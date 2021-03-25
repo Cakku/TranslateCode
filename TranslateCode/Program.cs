@@ -14,7 +14,7 @@ namespace TranslateCode
 	class Program
 	{
 		static readonly HttpClient client = new HttpClient();
-		static string auth = "2ce61ad5-4778-24e8-7c56-5bb2e11b73a7";
+		static string auth = "f9d692bb-8887-9d07-6f3f-60be515fd81c";
 		static JsonSerializerOptions options = new JsonSerializerOptions{PropertyNamingPolicy = JsonNamingPolicy.CamelCase};
 		static string responseRegex = "\"text\":\"(.*)\"";
 
@@ -24,19 +24,20 @@ namespace TranslateCode
 		public static void Main(string[] args)
 		{
 			string regex = "lang\\((.*),.\"(Sorry, this is untranslated sentence.)\"";
-			string path = "C:/Users/Cakku/Documents/Elona/elonaplus2.01/elonaplus/";
+			string path = "C:/Users/Cakku/Documents/Elona/elonaplus2.03/elonaplus/";
 
 			string texti = "buff = lang(\"この…鈴の音は…ランカータ…？なぜ…ここ…に。いや、違う…！\", \"Sorry, this is untranslated sentence.\") \nbuff = lang(\"は…ランカータ…？なぜ\", \"Sorry, this is untranslated sentence.\")";
+			string filename = "start1.hsp";
 
-			if (File.Exists(path + "start1.hsp"))
+			if (File.Exists(path + filename))
 			{
-				texti = File.ReadAllText(path + "start1.hsp");
+				texti = File.ReadAllText(path + filename);
 			}
 
 			Console.WriteLine("Start translating..");
 			string toTranslate = Regex.Replace(texti, regex, new MatchEvaluator(TranslateRegex));
 
-			File.WriteAllText(path + "translated.hsp", toTranslate, Encoding.UTF8);
+			File.WriteAllText(path + "translated_" + filename, toTranslate, Encoding.UTF8);
 			File.WriteAllText(path + "script.txt", script, Encoding.UTF8);
 			File.WriteAllText(path + "log.txt", log, Encoding.UTF8);
 			Console.WriteLine("*Translated:* \n");
